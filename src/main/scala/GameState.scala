@@ -43,18 +43,18 @@ class GameState {
     if (currentDirection != buffDirection) currentDirection = buffDirection
     currentDirection match {
       case Down =>
-        currentBlocks = (head._1, head._2 - 1) :: currentBlocks
+        currentBlocks = (head._1, (16 + head._2 - 1) % 16) :: currentBlocks
       case Left =>
-        currentBlocks = (head._1 - 1, head._2) :: currentBlocks
+        currentBlocks = ((16 + head._1 - 1) % 16, head._2) :: currentBlocks
       case Right =>
-        currentBlocks = (head._1 + 1, head._2) :: currentBlocks
+        currentBlocks = ((head._1 + 1) % 16, head._2) :: currentBlocks
       case Up =>
-        currentBlocks = (head._1, head._2 + 1) :: currentBlocks
+        currentBlocks = (head._1, (head._2 + 1) % 16) :: currentBlocks
     }
     if (head == currentFood) currentFood = genFood()
     else currentBlocks = currentBlocks.dropRight(1)
 
-    (currentBlocks.count(pair => pair._1 < 0 || pair._2 < 0 || pair._1 >= 16 || pair._2 >= 16) > 0) ||
+//    (currentBlocks.count(pair => pair._1 < 0 || pair._2 < 0 || pair._1 >= 16 || pair._2 >= 16) > 0) ||
       (currentBlocks.distinct.size != currentBlocks.size)
   }
 }
