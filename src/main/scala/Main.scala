@@ -12,9 +12,10 @@ object Main extends SimpleSwingApplication {
   val bluishLigtherGray = new AWTColor(79, 130, 130)
   val bluishEvenLigther = new AWTColor(145, 196, 196)
   val bluishSilver = new AWTColor(210, 255, 255)
+  val red = new AWTColor(217, 74, 105)
   val blockSize = 32
   val blockMargin = 1
-
+  var isEnded = false
   val state = new GameState
 
   override def top: Frame = new MainFrame {
@@ -59,6 +60,8 @@ object Main extends SimpleSwingApplication {
         redrawTimer.stop()
         snakeMovementTimer.stop()
         println("Stop")
+        isEnded = true
+        repaint()
       }
     }
   }
@@ -102,5 +105,9 @@ object Main extends SimpleSwingApplication {
     drawEmptyGrid()
     drawCurrent()
     drawBlocks()
+    if (isEnded) {
+      g setColor red
+      g fill buildRect(blocks.head)
+    }
   }
 }
