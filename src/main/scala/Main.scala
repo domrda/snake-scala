@@ -39,27 +39,25 @@ object Main extends SimpleSwingApplication {
       onPaint(g)
     }
 
-    val timer = new SwingTimer(100, new AbstractAction() {
+    val redrawTimer = new SwingTimer(100, new AbstractAction() {
       def actionPerformed(e: java.awt.event.ActionEvent) {
         repaint()
-//        moveSnake()
       }
     })
 
-    val timer2 = new SwingTimer(300, new AbstractAction() {
+    val snakeMovementTimer = new SwingTimer(300, new AbstractAction() {
       def actionPerformed(e: java.awt.event.ActionEvent) {
-//        repaint()
         moveSnake()
       }
     })
 
-    timer.start()
-    timer2.start()
+    redrawTimer.start()
+    snakeMovementTimer.start()
 
     def moveSnake() : Unit = {
       if (state.move()) {
-        timer.stop()
-        timer2.stop()
+        redrawTimer.stop()
+        snakeMovementTimer.stop()
         println("Stop")
       }
     }

@@ -15,6 +15,7 @@ class GameState {
   import GameState._
 
   var currentDirection : GameState.Direction = Up
+  var buffDirection = currentDirection
   var currentBlocks = List((1, 3), (1, 2), (1,1))
   var currentFood : (Int, Int) = (5, 5)
   val random = scala.util.Random
@@ -27,10 +28,10 @@ class GameState {
   }
 
   def receive(dir : Direction) = dir match {
-    case Down => if (currentDirection != Up) currentDirection = Down
-    case Left => if (currentDirection != Right) currentDirection = Left
-    case Right => if (currentDirection != Left) currentDirection = Right
-    case Up => if (currentDirection != Down) currentDirection = Up
+    case Down => if (currentDirection != Up) buffDirection = Down
+    case Left => if (currentDirection != Right) buffDirection = Left
+    case Right => if (currentDirection != Left) buffDirection = Right
+    case Up => if (currentDirection != Down) buffDirection = Up
   }
 
   def getGameState = {
@@ -39,6 +40,7 @@ class GameState {
 
   def move() : Boolean = {
     val head = currentBlocks.head
+    if (currentDirection != buffDirection) currentDirection = buffDirection
     currentDirection match {
       case Down =>
         currentBlocks = (head._1, head._2 - 1) :: currentBlocks
