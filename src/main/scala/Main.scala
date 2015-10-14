@@ -1,5 +1,12 @@
+import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.Status.{Failure, Success}
+
+import scala.concurrent.Await
 import scala.swing._
 import scala.swing.event._
+import akka.util.Timeout
+import akka.pattern.ask
+import concurrent.duration._
 
 object Main extends SimpleSwingApplication {
   import java.awt.{Color => AWTColor}
@@ -7,7 +14,7 @@ object Main extends SimpleSwingApplication {
 
   import event.Key._
 
-  val mainPanelSize = new Dimension(544, 544)
+  val mainPanelSize = new Dimension(1080, 544)
   val bluishGray = new AWTColor(48, 99, 99)
   val bluishLigtherGray = new AWTColor(79, 130, 130)
   val bluishEvenLigther = new AWTColor(145, 196, 196)
@@ -15,8 +22,12 @@ object Main extends SimpleSwingApplication {
   val red = new AWTColor(217, 74, 105)
   val blockSize = 32
   val blockMargin = 1
-  var isEnded = false
-  val state = new GameState
+
+  implicit val system = ActorSystem("LocalSystem")
+  implicit val timeout : Timeout = 10.second
+  val gs = system.actorOf(akka.actor.Props[GameState], "GS")
+  0 until 10 foreach(_ => gs.tell(GameState.Subscribe, system.actorOf(akka.actor.Props[Snake])))
+  gs ! GameState.StartGame
 
   override def top: Frame = new MainFrame {
     title = "snake"
@@ -40,13 +51,13 @@ object Main extends SimpleSwingApplication {
       onPaint(g)
     }
 
-    val redrawTimer = new SwingTimer(100, new AbstractAction() {
+    val redrawTimer = new SwingTimer(50, new AbstractAction() {
       def actionPerformed(e: java.awt.event.ActionEvent) {
         repaint()
       }
     })
 
-    val snakeMovementTimer = new SwingTimer(300, new AbstractAction() {
+    val snakeMovementTimer = new SwingTimer(150, new AbstractAction() {
       def actionPerformed(e: java.awt.event.ActionEvent) {
         moveSnake()
       }
@@ -56,27 +67,33 @@ object Main extends SimpleSwingApplication {
     snakeMovementTimer.start()
 
     def moveSnake() : Unit = {
-      if (state.move()) {
-        redrawTimer.stop()
-        snakeMovementTimer.stop()
-        println("Stop")
-        isEnded = true
-        repaint()
-      }
+      gs ! Snake.Move
+//      Await.result(snake ? Snake.Move, timeout.duration) match {
+//        case Success =>
+//        case Failure =>
+//          redrawTimer.stop()
+//          snakeMovementTimer.stop()
+//          println("Stop")
+////          isEnded = true
+//          repaint()
+//      }
     }
   }
 
   def onKeyPress(key: Key.Value) : Unit = key match {
-    case Left  => state.receive(GameState.Left)
-    case Right => state.receive(GameState.Right)
-    case Up    => state.receive(GameState.Up)
-    case Down  => state.receive(GameState.Down)
+    case Left  => gs ! Snake.Left
+    case Right => gs ! Snake.Right
+    case Up    => gs ! Snake.Up
+    case Down  => gs ! Snake.Down
     case _ =>
   }
 
   def onPaint(g: Graphics2D) {
-    val curState = state.getGameState
-    drawBoard(g, (6, 6), (16, 16), curState.blocks, curState.food)
+    Await.result(gs ? Snake.State, timeout.duration) match {
+      case GameState.FieldState(blocks, food) =>
+        drawBoard(g, (6, 6), (GameState.FieldSize._1, GameState.FieldSize._2), blocks.toSeq, food)
+      case _ => println("Got something strange")
+    }
   }
 
   def drawBoard(g: Graphics2D, offset: (Int, Int), gridSize: (Int, Int),
@@ -105,9 +122,9 @@ object Main extends SimpleSwingApplication {
     drawEmptyGrid()
     drawCurrent()
     drawBlocks()
-    if (isEnded) {
-      g setColor red
-      g fill buildRect(blocks.head)
-    }
+//    if (isEnded) {
+//      g setColor red
+//      g fill buildRect(blocks.head)
+//    }
   }
 }
