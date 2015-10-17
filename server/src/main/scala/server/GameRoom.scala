@@ -59,8 +59,10 @@ class GameRoom(player1: String, player2: String) extends Actor with ActorLogging
         }
         context.watch(sender)
       }
-    case Failure => snakes -= sender; sender ! PoisonPill
-    case Snake.AteFood => food = genFood()
+    case x : Failure => snakes -= sender; sender ! PoisonPill
+    case Snake.AteFood =>
+      println("AteFood2")
+      food = genFood()
     case Messages.GetState => sender ! Messages.State(snake1, snake2, food)
     case Snake.SnakeState(pos, player) =>
       if (player == player1)

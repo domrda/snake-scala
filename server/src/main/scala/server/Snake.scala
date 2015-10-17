@@ -53,8 +53,12 @@ class Snake(val player: String) extends Actor {
       case Up =>
         currentBlocks = (head._1, (head._2 + 1) % Games.fieldSize._2) :: currentBlocks
     }
-    if (head == currentFood) context.parent ! AteFood
-    else currentBlocks = currentBlocks.dropRight(1)
+    if (head == currentFood) {
+      println("AteFood")
+      sender ! AteFood
+    } else {
+      currentBlocks = currentBlocks.dropRight(1)
+    }
 
     if (currentBlocks.distinct.size == currentBlocks.size) sender ! SnakeState(currentBlocks, player)
     else sender ! Failure
