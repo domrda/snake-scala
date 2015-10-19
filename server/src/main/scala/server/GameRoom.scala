@@ -1,9 +1,7 @@
 package server
-import messages._
-
-import akka.actor.Status.Failure
 import akka.actor._
 import akka.util.Timeout
+import messages._
 
 import scala.concurrent.duration._
 
@@ -57,11 +55,16 @@ class GameRoom(player1: String, player2: String) extends Actor with ActorLogging
           context.system.scheduler.schedule(10.seconds, 250.millis) {
           snakes.foreach(_ ! Snake.Move)
         }
-        context.watch(sender)
+        context.watch(snake)
       }
-    case x : Failure => snakes -= sender; sender ! PoisonPill
+    case Snake.AteItself(player) =>
+      if (player == player1)
+        snake1 = List.empty
+      else
+        snake2 = List.empty
+      println("Snake ate itself")
+      snakes -= sender; sender ! PoisonPill
     case Snake.AteFood =>
-      println("AteFood2")
       food = genFood()
     case Messages.GetState => sender ! Messages.State(snake1, snake2, food)
     case Snake.SnakeState(pos, player) =>

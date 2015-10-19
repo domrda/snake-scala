@@ -3,7 +3,8 @@ package messages
 import akka.actor.ActorRef
 
 object Games {
-  val fieldSize = (32, 16)
+  //H, V
+  val fieldSize = (16, 16)
 }
 
 object Messages {

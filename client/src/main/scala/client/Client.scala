@@ -1,12 +1,12 @@
 package client
 
-import akka.actor.Actor.Receive
-import akka.actor.{Actor, ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import messages._
-import scala.concurrent.{TimeoutException, Await}
+
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.swing._
 import scala.swing.event.{Key, KeyPressed}
@@ -17,15 +17,18 @@ object Client extends SimpleSwingApplication {
 
   import swing.event.Key._
 
-  val mainPanelSize = new Dimension(1080, 544)
+  val blockSize = 32
+  val blockMargin = 1
+  val offset = 6
+  val H = Games.fieldSize._1 * (blockSize + blockMargin) + 2 * offset
+  val V = Games.fieldSize._2 * (blockSize + blockMargin) + 2 * offset
+  val mainPanelSize = new Dimension(H, V)
   val bluishGray = new AWTColor(48, 99, 99)
   val bluishLigtherGray = new AWTColor(79, 130, 130)
   val bluishEvenLigther = new AWTColor(145, 196, 196)
   val bluishDarker = new AWTColor(105, 156, 156)
   val bluishSilver = new AWTColor(210, 255, 255)
   val red = new AWTColor(217, 74, 105)
-  val blockSize = 32
-  val blockMargin = 1
 
   implicit val system = ActorSystem("LocalSystem")
   implicit val timeout : Timeout = 10.seconds
@@ -75,7 +78,7 @@ object Client extends SimpleSwingApplication {
     reactions += {
       case KeyPressed(_, key, _, _) =>
         onKeyPress(key)
-        repaint()
+//        repaint()
     }
 
     override def paint(g: Graphics2D) {
@@ -84,7 +87,7 @@ object Client extends SimpleSwingApplication {
       onPaint(g)
     }
 
-    val redrawTimer = new SwingTimer(100, new AbstractAction() {
+    val redrawTimer = new SwingTimer(50, new AbstractAction() {
       def actionPerformed(e: java.awt.event.ActionEvent) {
         repaint()
       }
@@ -103,7 +106,7 @@ object Client extends SimpleSwingApplication {
 
   def onPaint(g: Graphics2D) {
     val state = Await.result(myGameRoom ? Messages.GetState, timeout.duration).asInstanceOf[Messages.State]
-    drawBoard(g, (6, 6), (Games.fieldSize._1, Games.fieldSize._2), state.snake1, state.snake2, state.food)
+    drawBoard(g, (offset, offset), (Games.fieldSize._1, Games.fieldSize._2), state.snake1, state.snake2, state.food)
   }
 
   def drawBoard(g: Graphics2D, offset: (Int, Int), gridSize: (Int, Int), snake1: List[(Int, Int)],

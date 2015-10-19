@@ -1,23 +1,21 @@
 package server
 
-import akka.actor.Status.Failure
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 
 object Snake {
   case class SnakeState(snake: List[(Int, Int)], player: String)
   case class Food(food: (Int, Int))
   case object AteFood
   case object Move
+  case class AteItself(player: String)
 }
 
 class Snake(val player: String) extends Actor {
   println("Snake started")
 
   import Snake._
-  import messages.Games
-  import messages.Games._
-  import messages.Messages
   import messages.Messages._
+  import messages.{Games, Messages}
 
   val random = scala.util.Random
   var currentDirection : Messages.Direction = Messages.Up
@@ -54,13 +52,12 @@ class Snake(val player: String) extends Actor {
         currentBlocks = (head._1, (head._2 + 1) % Games.fieldSize._2) :: currentBlocks
     }
     if (head == currentFood) {
-      println("AteFood")
       sender ! AteFood
     } else {
       currentBlocks = currentBlocks.dropRight(1)
     }
 
     if (currentBlocks.distinct.size == currentBlocks.size) sender ! SnakeState(currentBlocks, player)
-    else sender ! Failure
+    else sender ! AteItself(player)
   }
 }
